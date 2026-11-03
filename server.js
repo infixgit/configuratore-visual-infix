@@ -5,7 +5,7 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '20mb' })); // Aumentato a 20mb per gestire più foto
+app.use(express.json({ limit: '20mb' })); 
 app.use(cors());
 
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
@@ -21,7 +21,6 @@ app.post('/api/send-visual-request', async (req, res) => {
     return res.status(400).json({ error: 'Campi obbligatori mancanti.' });
   }
 
-  // Gestione di più allegati foto
   let attachments = [];
   if (images && Array.isArray(images)) {
     images.forEach((imgBase64, index) => {
@@ -63,7 +62,8 @@ app.post('/api/send-visual-request', async (req, res) => {
   `;
   
   if (attachments.length > 0) {
-    sendSmtpEmail.attachment = attachments;
+    // CORRETTO: la libreria Brevo richiede "attachments" al plurale
+    sendSmtpEmail.attachments = attachments;
   }
 
   try {
