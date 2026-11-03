@@ -25,6 +25,7 @@
     }
     
     .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+    .header img { max-width: 180px; height: auto; display: block; margin: 0 auto 15px auto; border-radius: 6px; }
     .header h1 { color: var(--primary-color); font-size: 28px; font-weight: 800; }
     .header p { color: #666; font-size: 15px; margin-top: 5px; }
 
@@ -40,10 +41,13 @@
     }
     select:focus, input:focus, textarea:focus { border-color: var(--primary-color); outline: none; background: #fff; }
 
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+    @media (max-width: 768px) { .grid-3 { grid-template-columns: 1fr; } }
+
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
 
-    /* Upload Photo & Preview */
+    /* Upload Photo & Multi Preview */
     .file-upload-box {
       border: 2px dashed #bbb;
       border-radius: 8px;
@@ -54,10 +58,23 @@
     }
     .file-upload-box:hover { border-color: var(--primary-color); background: #f0f7ff; }
     #photoInput { display: none; }
-    #previewContainer { display: none; margin-top: 15px; text-align: center; }
-    #previewImage { max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; }
+    
+    #previewContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .preview-thumb {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+    .preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Privacy checkbox styling */
     .checkbox-group {
       display: flex;
       align-items: flex-start;
@@ -68,7 +85,6 @@
     }
     .checkbox-group input { margin-top: 4px; cursor: pointer; }
 
-    /* Submit Button */
     .btn-submit {
       width: 100%;
       background-color: var(--accent-color);
@@ -83,7 +99,6 @@
     }
     .btn-submit:hover { background-color: #45a049; }
 
-    /* Success Message */
     #statusMessage {
       display: none;
       padding: 15px;
@@ -100,6 +115,8 @@
 
   <div class="container">
     <div class="header">
+      <!-- Logo Bussola INFIX Formattato -->
+      <img src="bussola-infix-marchio-figurativo-momento di intervenire.jpg" alt="Bussola INFIX Logo">
       <h1>VISUAL INFIX®</h1>
       <p>Configuratore Visivo & Scheda Tecnica Preventivo</p>
     </div>
@@ -120,50 +137,55 @@
         </select>
       </div>
 
-      <!-- STEP 2: Sottomenu Dinamici (Tipologia & Diagnosi Tecnica) -->
-      <div class="grid-2">
+      <!-- STEP 2, 3 & 4: Sottomenu Dinamici + Specifiche Colore/Materiale -->
+      <div class="grid-3">
         <div class="form-group">
           <label for="subCategorySelect">2. Tipologia / Materiale</label>
-          <select id="subCategorySelect" required>
-            <option value="">-- Prima seleziona la categoria --</option>
+          <select id="subCategorySelect" required onchange="updateSpecifications()">
+            <option value="">-- Prima seleziona cat. --</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="diagnosisSelect">3. Esigenza / Problema Rilevato</label>
+          <label for="specSelect">3. Finitura / Colore / Essenza</label>
+          <select id="specSelect" required>
+            <option value="">-- Prima seleziona tipologia --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="diagnosisSelect">4. Esigenza / Problema</label>
           <select id="diagnosisSelect" required>
-            <option value="">-- Prima seleziona la categoria --</option>
+            <option value="">-- Prima seleziona cat. --</option>
           </select>
         </div>
       </div>
 
-      <!-- STEP 3: Indirizzo e Luogo del Lavoro -->
+      <!-- STEP 5: Indirizzo Cantiere -->
       <div class="form-group">
-        <label for="userAddress">4. Indirizzo del Cantiere / Località dell'Intervento</label>
+        <label for="userAddress">5. Indirizzo del Cantiere / Località dell'Intervento</label>
         <input type="text" id="userAddress" placeholder="Via Roma 10, Città (Provincia)" required>
       </div>
 
-      <!-- STEP 4: Upload Foto Stato Attuale (FACOLTATIVA) -->
+      <!-- STEP 6: Upload Foto Multiple -->
       <div class="form-group">
-        <label>5. Foto dello Stato Attuale (Facoltativa)</label>
+        <label>6. Foto dello Stato Attuale (Puoi caricarne anche più di una)</label>
         <div class="file-upload-box" onclick="document.getElementById('photoInput').click()">
-          <p>📷 <strong>Clicca qui per caricare o scattare la foto</strong></p>
+          <p>📷 <strong>Clicca qui per caricare o scattare le foto</strong></p>
           <span style="font-size:12px; color:#777;">Formati accettati: JPG, PNG (Opzionale)</span>
         </div>
-        <input type="file" id="photoInput" accept="image/*" onchange="handleImagePreview(event)">
+        <input type="file" id="photoInput" accept="image/*" multiple onchange="handleImagePreviews(event)">
         
-        <div id="previewContainer">
-          <img id="previewImage" src="" alt="Anteprima Foto">
-        </div>
+        <div id="previewContainer"></div>
       </div>
 
-      <!-- STEP 5: Note e Specifiche Libere -->
+      <!-- STEP 7: Note -->
       <div class="form-group">
-        <label for="userNotes">6. Note e Preferenze (Colore RAL, Finitura, Vetro acustico, ecc.)</label>
-        <textarea id="userNotes" rows="3" placeholder="Es. Cerco finitura Antracite RAL 7016 con triplo vetro fonoassorbente..."></textarea>
+        <label for="userNotes">7. Note e Preferenze (Vetro acustico, ferramenta antieffrazione, ecc.)</label>
+        <textarea id="userNotes" rows="3" placeholder="Es. Cerco triplo vetro fonoassorbente..."></textarea>
       </div>
 
-      <!-- STEP 6: Contatti -->
+      <!-- STEP 8: Contatti -->
       <div class="grid-2">
         <div class="form-group">
           <label for="userName">Nome e Cognome / Azienda</label>
@@ -180,7 +202,7 @@
         <input type="email" id="userEmail" placeholder="mario.rossi@email.it" required>
       </div>
 
-      <!-- CHECKBOX PRIVACY GDPR -->
+      <!-- GDPR -->
       <div class="checkbox-group">
         <input type="checkbox" id="privacyCheck" required>
         <label for="privacyCheck" style="display:inline; font-weight:normal; color:#555;">
@@ -195,46 +217,73 @@
   </div>
 
   <script>
+    // Dati avanzati con sottomenu specifici per colori, essenze e finiture
     const optionsData = {
       serramenti: {
-        types: ["PVC ad Alto Isolamento", "Legno-Alluminio", "Alluminio a Taglio Termico", "Legno Naturale"],
+        types: [
+          { name: "PVC ad Alto Isolamento", specs: ["Bianco Massa / Effetto Legno", "Grigio Antracite RAL 7016", "Effetto Rovere Chiaro / Scuro", "Bicolore (Interno Bianco / Esterno Colore)"] },
+          { name: "Legno-Alluminio", specs: ["Rovere Naturale / Spazzolato", "Pino Laccato Bianco", "Noce / Castagno", "Alluminio Esterno Ral Personalizzato"] },
+          { name: "Alluminio a Taglio Termico", specs: ["Verniciato RAL Standard Opaco", "Effetto Legno Sublimato", "Ossidato / Anodizzato Argento o Bronzo"] },
+          { name: "Legno Naturale", specs: ["Rovere Sfumato", "Pino di Svezia", "Frassino / Lario"] }
+        ],
         diagnosis: ["Spifferi e Condensa persistente", "Dispersioni termiche elevate", "Scarsità di isolamento acustico", "Degrado meccanico / Difficoltà apertura"]
       },
       blindate: {
-        types: ["Porta Blindata Classe 3", "Porta Blindata Classe 4", "Portoncino d'Ingresso Alluminio/Legno"],
+        types: [
+          { name: "Porta Blindata Classe 3", specs: ["Pannello Liscio Laminato", "Pannello Pantografato Legno", "Pannello Alluminio per Esterno"] },
+          { name: "Porta Blindata Classe 4", specs: ["Finitura coordinata condominiale", "Pannello Massello Rovere", "Alluminio Antigrandine/Sole"] },
+          { name: "Portoncino d'Ingresso Alluminio/Legno", specs: ["Vetro laterale satinato", "Design moderno con inserti inox"] }
+        ],
         diagnosis: ["Sicurezza e Serratura obsoleta", "Usura e Perdita di tenuta d'aria", "Richiesta Restyling Estetico"]
       },
       interne: {
-        types: ["Battente Laccato / Essenza", "Scorrevole Incasso (Scrigno)", "Scorrevole Esterno Muro", "Vetro e Alluminio Design"],
+        types: [
+          { name: "Battente Laccato / Essenza", specs: ["Laccato Bianco Opaco / Lucido", "Essenza Rovere Naturale", "Finitura Spazzolata a Poro Aperto"] },
+          { name: "Scorrevole Incasso (Scrigno)", specs: ["Legno Cieco", "Vetro Trasparente / Satinato con Cornice"] },
+          { name: "Scorrevole Esterno Muro", specs: ["Binario di Design Alluminio", "Porta in Vetro Temperato Decorato"] },
+          { name: "Vetro e Alluminio Design", specs: ["Vetro Fumè con Profili Neri", "Vetro Extrachiaro"] }
+        ],
         diagnosis: ["Degrado Meccanico / Usura", "Stile Fuori Mercato", "Isolamento Acustico Nullo tra Ambienti"]
       },
       oscuranti: {
-        types: ["Persiane Alluminio / PVC", "Scuri in Legno / Alluminio", "Tapparelle Avvolgibili Coibentate"],
+        types: [
+          { name: "Persiane Alluminio / PVC", specs: ["A stecca orientabile", "A stecca fissa cieca", "Verde / Marrone / Antracite RAL"] },
+          { name: "Scuri in Legno / Alluminio", specs: ["Modello Veneziano a doghe", "Modello Padovano / Vicentino"] },
+          { name: "Tapparelle Avvolgibili Coibentate", specs: ["Alluminio alta densità", "Acciaio antieffrazione"] }
+        ],
         diagnosis: ["Sbiadimento Irreversibile", "Costi di manutenzione troppo elevati", "Usura Meccanica Guide/Rulli"]
       },
       cassonetti: {
-        types: ["Cassonetto Coibentato Monoblocco", "Isolamento Cassonetto Esistente (Renova)"],
+        types: [
+          { name: "Cassonetto Coibentato Monoblocco", specs: ["Finitura bianca standard da tinteggiare", "Rivestimento coordinato al infisso"] },
+          { name: "Isolamento Cassonetto Esistente (Renova)", specs: ["Kit termico interno invisibile"] }
+        ],
         diagnosis: ["Ponte Termico e Bucate da Aria", "Rumore esterno dal Cassonetto", "Spifferi perimetrali"]
       },
       sezionali: {
-        types: ["Portone Sezionale Coibentato", "Basculante di Sicurezza Motore"],
+        types: [
+          { name: "Portone Sezionale Coibentato", specs: ["Pannello dogato bianco/antracite", "Effetto legno scuro con oblò"] },
+          { name: "Basculante di Sicurezza Motore", specs: ["Lamiera verniciata goffrata", "Snodo semiautomatico"] }
+        ],
         diagnosis: ["Mancanza di isolamento nel Garage", "Richiesta Apertura Automatica/Smart", "Usura Molle e Cavi"]
       }
     };
 
-    let imageBase64 = "";
+    let collectedImages = [];
 
     function updateSubCategories() {
       const cat = document.getElementById('categorySelect').value;
       const subSelect = document.getElementById('subCategorySelect');
+      const specSelect = document.getElementById('specSelect');
       const diagSelect = document.getElementById('diagnosisSelect');
 
       subSelect.innerHTML = '<option value="">-- Seleziona Tipologia --</option>';
+      specSelect.innerHTML = '<option value="">-- Prima seleziona tipologia --</option>';
       diagSelect.innerHTML = '<option value="">-- Seleziona Diagnosi --</option>';
 
       if (cat && optionsData[cat]) {
-        optionsData[cat].types.forEach(t => {
-          subSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        optionsData[cat].types.forEach((t, index) => {
+          subSelect.innerHTML += `<option value="${t.name}">${t.name}</option>`;
         });
         optionsData[cat].diagnosis.forEach(d => {
           diagSelect.innerHTML += `<option value="${d}">${d}</option>`;
@@ -242,20 +291,44 @@
       }
     }
 
-    function handleImagePreview(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('previewImage').src = e.target.result;
-          document.getElementById('previewContainer').style.display = 'block';
-          imageBase64 = e.target.result;
+    function updateSpecifications() {
+      const cat = document.getElementById('categorySelect').value;
+      const subName = document.getElementById('subCategorySelect').value;
+      const specSelect = document.getElementById('specSelect');
+
+      specSelect.innerHTML = '<option value="">-- Seleziona Finitura / Colore --</option>';
+
+      if (cat && subName && optionsData[cat]) {
+        const foundType = optionsData[cat].types.find(t => t.name === subName);
+        if (foundType && foundType.specs) {
+          foundType.specs.forEach(s => {
+            specSelect.innerHTML += `<option value="${s}">${s}</option>`;
+          });
         }
-        reader.readAsDataURL(file);
       }
     }
 
-    // Gestione Invio al Backend Render
+    function handleImagePreviews(event) {
+      const files = event.target.files;
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = '';
+      collectedImages = [];
+
+      if (files) {
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            collectedImages.push(e.target.result);
+            const thumb = document.createElement('div');
+            thumb.className = 'preview-thumb';
+            thumb.innerHTML = `<img src="${e.target.result}" alt="Anteprima">`;
+            previewContainer.appendChild(thumb);
+          }
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
     document.getElementById('visualInfixForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -269,13 +342,14 @@
       const formData = {
         category: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
         subCategory: document.getElementById('subCategorySelect').value,
+        specification: document.getElementById('specSelect').value, // Il nuovo menu Colore/Essenza/Finitura
         diagnosis: document.getElementById('diagnosisSelect').value,
         address: document.getElementById('userAddress').value,
         notes: document.getElementById('userNotes').value,
         name: document.getElementById('userName').value,
         phone: document.getElementById('userPhone').value,
         email: document.getElementById('userEmail').value,
-        image: imageBase64
+        image: collectedImages.length > 0 ? collectedImages[0] : null
       };
 
       try {
@@ -287,17 +361,19 @@
 
         if (response.ok) {
           statusMsg.className = 'success';
-          statusMsg.innerText = '✅ Richiesta inviata con successo! L\'Ufficio Tecnico INFIX® ti risponderà a breve.';
-          document.getElementById('visualInfixForm').reset();
-          document.getElementById('previewContainer').style.display = 'none';
-          imageBase64 = "";
+          statusMsg.innerText = '✅ Richiesta inviata con successo! Verrai reindirizzato al sito INFIX®...';
+          statusMsg.style.display = 'block';
+
+          setTimeout(() => {
+            window.location.href = 'https://www.infix.it';
+          }, 3000);
+
         } else {
           throw new Error('Errore durante l\'invio');
         }
       } catch (err) {
         statusMsg.className = 'error';
         statusMsg.innerText = '❌ Si è verificato un errore durante l\'invio. Riprova o contattaci via WhatsApp.';
-      } finally {
         statusMsg.style.display = 'block';
         submitBtn.disabled = false;
         submitBtn.innerText = "INVIA RICHIESTA INFIX®";
