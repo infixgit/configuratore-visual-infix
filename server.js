@@ -5,33 +5,31 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configurazione limite per ricevere immagini in Base64
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '20mb' })); // Aumentato a 20mb per gestire più foto
 app.use(cors());
 
-// Configurazione Client Brevo API
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY; // Presa dalle Environment Variables di Render
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// Rotta POST per ricevere il modulo dal configuratore
 app.post('/api/send-visual-request', async (req, res) => {
-  const { category, subCategory, diagnosis, notes, name, phone, email, image } = req.body;
+  const { category, subCategory, diagnosis, address, notes, name, phone, email, images } = req.body;
 
   if (!email || !name || !category) {
     return res.status(400).json({ error: 'Campi obbligatori mancanti.' });
   }
 
-  // Prepariamo l'allegato se presente la foto
+  // Gestione di più allegati foto
   let attachments = [];
-  if (image) {
-    // Estraiamo il contenuto base64 pulito
-    const base64Content = image.split(';base64,').pop();
-    attachments.push({
-      content: base64Content,
-      name: `stato_attuale_${Date.now()}.jpg`
+  if (images && Array.isArray(images)) {
+    images.forEach((imgBase64, index) => {
+      const base64Content = imgBase64.split(';base64,').pop();
+      attachments.push({
+        content: base64Content,
+        name: `foto_stato_attuale_${index + 1}_${Date.now()}.jpg`
+      });
     });
   }
 
@@ -40,7 +38,6 @@ app.post('/api/send-visual-request', async (req, res) => {
   sendSmtpEmail.sender = { name: "Visual INFIX® Web", email: process.env.SENDER_EMAIL || "info@infix.it" };
   sendSmtpEmail.to = [{ email: process.env.RECIPIENT_EMAIL || "info@infix.it", name: "Ufficio Tecnico INFIX" }];
   
-  // HTML dell'email formattata per l'ufficio commerciale/tecnico
   sendSmtpEmail.htmlContent = `
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
       <h2 style="color: #004070; border-bottom: 2px solid #4CAF50; padding-bottom: 8px;">
@@ -49,6 +46,7 @@ app.post('/api/send-visual-request', async (req, res) => {
       <p><strong>Cliente / Azienda:</strong> ${name}</p>
       <p><strong>Telefono / WhatsApp:</strong> ${phone}</p>
       <p><strong>Email Cliente:</strong> ${email}</p>
+      <p><strong>Indirizzo Cantiere / Intervento:</strong> ${address || 'Non specificato'}</p>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;" />
       <h3>Dettagli Tecnici Selezionati:</h3>
       <ul>
@@ -60,7 +58,7 @@ app.post('/api/send-visual-request', async (req, res) => {
       <blockquote style="background: #f9f9f9; padding: 10px; border-left: 4px solid #004070;">
         ${notes || 'Nessuna nota inserita.'}
       </blockquote>
-      <p><em>La foto dello stato attuale è stata allegata a questa email.</em></p>
+      <p><em>Numero di foto allegate: ${attachments.length}</em></p>
     </div>
   `;
   
