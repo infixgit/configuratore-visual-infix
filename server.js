@@ -21,16 +21,17 @@ app.post('/api/send-visual-request', async (req, res) => {
     return res.status(400).json({ error: 'Campi obbligatori mancanti.' });
   }
 
-  let attachments = [];
+  // Gestione dell'allegato foto per l'ufficio
+  let attachmentsList = [];
   if (image) {
     const base64Content = image.split(';base64,').pop();
-    attachments.push({
+    attachmentsList.push({
       content: base64Content,
       name: `stato_attuale_${Date.now()}.jpg`
     });
   }
 
-  // 1. EMAIL PER L'UFFICIO TECNICO (con foto allegata e indirizzo)
+  // 1. EMAIL PER L'UFFICIO TECNICO (con allegato e indirizzo)
   const emailToOffice = new SibApiV3Sdk.SendSmtpEmail();
   emailToOffice.subject = `Nuova Richiesta Visual INFIX®: ${category} - ${name}`;
   emailToOffice.sender = { name: "Visual INFIX® Web", email: process.env.SENDER_EMAIL || "info@infix.it" };
@@ -60,11 +61,12 @@ app.post('/api/send-visual-request', async (req, res) => {
     </div>
   `;
   
-  if (attachments.length > 0) {
-    emailToOffice.attachments = attachments;
+  // Fondamentale: usiamo "attachments" (al plurale) come vuole Brevo
+  if (attachmentsList.length > 0) {
+    emailToOffice.attachments = attachmentsList;
   }
 
-  // 2. EMAIL DI RICEVUTA ELEGANTE PER IL CLIENTE (senza foto in allegato, pulita)
+  // 2. EMAIL DI RICEVUTA PER IL CLIENTE
   const emailToClient = new SibApiV3Sdk.SendSmtpEmail();
   emailToClient.subject = `Abbiamo ricevuto la tua richiesta - INFIX®`;
   emailToClient.sender = { name: "INFIX®", email: process.env.SENDER_EMAIL || "info@infix.it" };
@@ -82,7 +84,6 @@ app.post('/api/send-visual-request', async (req, res) => {
   `;
 
   try {
-    // Inviamo entrambe le email tramite Brevo
     await apiInstance.sendTransacEmail(emailToOffice);
     await apiInstance.sendTransacEmail(emailToClient);
 
