@@ -5,34 +5,42 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configurazione limite per ricevere immagini in Base64 (portato a 20mb)
 app.use(express.json({ limit: '20mb' }));
 app.use(cors());
 
+// Configurazione Client Brevo API
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
+apiKey.apiKey = process.env.BREVO_API_KEY; // Presa dalle Environment Variables di Render
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+// Rotta POST per ricevere il modulo dal configuratore
 app.post('/api/send-visual-request', async (req, res) => {
-  // Aggiunto "specification" per ricevere il colore o l'essenza scelta
-  const { category, subCategory, specification, diagnosis, address, notes, name, phone, email, image } = req.body;
+  const { category, subCategory, specification, diagnosis, address, notes, name, phone, email, image, images } = req.body;
 
   if (!email || !name || !category) {
     return res.status(400).json({ error: 'Campi obbligatori mancanti.' });
   }
 
-  // Gestione dell'allegato foto per l'ufficio
-  let attachmentsList = [];
-  if (image) {
-    const base64Content = image.split(';base64,').pop();
-    attachmentsList.push({
+  // Supporto sia per singola foto che per array di foto
+  let targetImage = image;
+  if (!targetImage && images && Array.isArray(images) && images.length > 0) {
+    targetImage = images[0];
+  }
+
+  // Prepariamo l'allegato se presente la foto (utilizzando il metodo esatto del codice funzionante)
+  let attachments = [];
+  if (targetImage) {
+    const base64Content = targetImage.includes(';base64,') ? targetImage.split(';base64,').pop() : targetImage;
+    attachments.push({
       content: base64Content,
       name: `stato_attuale_${Date.now()}.jpg`
     });
   }
 
-  // 1. EMAIL PER L'UFFICIO TECNICO (con allegato, indirizzo e specifica colore/essenza)
+  // 1. EMAIL PER L'UFFICIO TECNICO (con allegato, indirizzo e specifiche)
   const emailToOffice = new SibApiV3Sdk.SendSmtpEmail();
   emailToOffice.subject = `Nuova Richiesta Visual INFIX®: ${category} - ${name}`;
   emailToOffice.sender = { name: "Visual INFIX® Web", email: process.env.SENDER_EMAIL || "info@infix.it" };
@@ -63,11 +71,12 @@ app.post('/api/send-visual-request', async (req, res) => {
     </div>
   `;
   
-  if (attachmentsList.length > 0) {
-    emailToOffice.attachments = attachmentsList;
+  // Utilizziamo "attachment" al singolare come nel codice originale funzionante
+  if (attachments.length > 0) {
+    emailToOffice.attachment = attachments;
   }
 
-  // 2. EMAIL DI RICEVUTA PER IL CLIENTE
+  // 2. EMAIL DI RICEVUTA DI CORTESIA PER IL CLIENTE
   const emailToClient = new SibApiV3Sdk.SendSmtpEmail();
   emailToClient.subject = `Abbiamo ricevuto la tua richiesta - INFIX®`;
   emailToClient.sender = { name: "INFIX®", email: process.env.SENDER_EMAIL || "info@infix.it" };
