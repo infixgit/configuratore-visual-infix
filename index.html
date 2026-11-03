@@ -170,7 +170,6 @@
   </div>
 
   <script>
-    // Mappa dei Sottomenu Dinamici (Basata sul catalogo e Area Tecnica Infix.it)
     const optionsData = {
       serramenti: {
         types: ["PVC ad Alto Isolamento", "Legno-Alluminio", "Alluminio a Taglio Termico", "Legno Naturale"],
@@ -225,7 +224,7 @@
         reader.onload = function(e) {
           document.getElementById('previewImage').src = e.target.result;
           document.getElementById('previewContainer').style.display = 'block';
-          imageBase64 = e.target.result; // Salva la foto in Base64 per l'invio
+          imageBase64 = e.target.result;
         }
         reader.readAsDataURL(file);
       }
@@ -243,7 +242,7 @@
       statusMsg.style.display = 'none';
 
       const formData = {
-        category: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
+        category: document.getElementById('categorySelect').options[document.getElementById('categorySelectselectedIndex'] ? document.getElementById('categorySelect').selectedIndex : document.getElementById('categorySelect').selectedIndex].text,
         subCategory: document.getElementById('subCategorySelect').value,
         diagnosis: document.getElementById('diagnosisSelect').value,
         notes: document.getElementById('userNotes').value,
@@ -254,8 +253,7 @@
       };
 
       try {
-        // INSERISCI QUI IL TUO URL REALE DI RENDER
-        const response = await fetch('https://il-tuo-servizio.onrender.com/api/send-visual-request', {
+        const response = await fetch('https://configuratore-visual-infix.onrender.com/api/send-visual-request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
