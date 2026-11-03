@@ -47,6 +47,8 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
 
+    #customSpecGroup { display: none; margin-top: 10px; }
+
     /* Upload Photo & Multi Preview */
     .file-upload-box {
       border: 2px dashed #bbb;
@@ -137,7 +139,7 @@
         </select>
       </div>
 
-      <!-- STEP 2, 3 & 4: Sottomenu Dinamici + Specifiche Colore/Materiale -->
+      <!-- STEP 2, 3 & 4: Sottomenu Dinamici + Specifiche Colore/Materiale con opzione Altro -->
       <div class="grid-3">
         <div class="form-group">
           <label for="subCategorySelect">2. Tipologia / Materiale</label>
@@ -148,9 +150,13 @@
 
         <div class="form-group">
           <label for="specSelect">3. Finitura / Colore / Essenza</label>
-          <select id="specSelect" required>
+          <select id="specSelect" required onchange="checkCustomSpec(this)">
             <option value="">-- Prima seleziona tipologia --</option>
           </select>
+          <!-- Campo di testo libero che appare se selezionano l'opzione Altro -->
+          <div id="customSpecGroup">
+            <input type="text" id="customSpecInput" placeholder="Indica il colore o essenza desiderata...">
+          </div>
         </div>
 
         <div class="form-group">
@@ -217,53 +223,52 @@
   </div>
 
   <script>
-    // Dati avanzati con sottomenu specifici per colori, essenze e finiture
     const optionsData = {
       serramenti: {
         types: [
-          { name: "PVC ad Alto Isolamento", specs: ["Bianco Massa / Effetto Legno", "Grigio Antracite RAL 7016", "Effetto Rovere Chiaro / Scuro", "Bicolore (Interno Bianco / Esterno Colore)"] },
-          { name: "Legno-Alluminio", specs: ["Rovere Naturale / Spazzolato", "Pino Laccato Bianco", "Noce / Castagno", "Alluminio Esterno Ral Personalizzato"] },
-          { name: "Alluminio a Taglio Termico", specs: ["Verniciato RAL Standard Opaco", "Effetto Legno Sublimato", "Ossidato / Anodizzato Argento o Bronzo"] },
-          { name: "Legno Naturale", specs: ["Rovere Sfumato", "Pino di Svezia", "Frassino / Lario"] }
+          { name: "PVC ad Alto Isolamento", specs: ["Bianco Massa / Effetto Legno", "Grigio Antracite RAL 7016", "Effetto Rovere Chiaro / Scuro", "Bicolore (Interno Bianco / Esterno Colore)", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Legno-Alluminio", specs: ["Rovere Naturale / Spazzolato", "Pino Laccato Bianco", "Noce / Castagno", "Alluminio Esterno Ral Personalizzato", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Alluminio a Taglio Termico", specs: ["Verniciato RAL Standard Opaco", "Effetto Legno Sublimato", "Ossidato / Anodizzato Argento o Bronzo", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Legno Naturale", specs: ["Rovere Sfumato", "Pino di Svezia", "Frassino / Lario", "Altro (Specifica un colore o essenza personalizzata)"] }
         ],
         diagnosis: ["Spifferi e Condensa persistente", "Dispersioni termiche elevate", "Scarsità di isolamento acustico", "Degrado meccanico / Difficoltà apertura"]
       },
       blindate: {
         types: [
-          { name: "Porta Blindata Classe 3", specs: ["Pannello Liscio Laminato", "Pannello Pantografato Legno", "Pannello Alluminio per Esterno"] },
-          { name: "Porta Blindata Classe 4", specs: ["Finitura coordinata condominiale", "Pannello Massello Rovere", "Alluminio Antigrandine/Sole"] },
-          { name: "Portoncino d'Ingresso Alluminio/Legno", specs: ["Vetro laterale satinato", "Design moderno con inserti inox"] }
+          { name: "Porta Blindata Classe 3", specs: ["Pannello Liscio Laminato", "Pannello Pantografato Legno", "Pannello Alluminio per Esterno", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Porta Blindata Classe 4", specs: ["Finitura coordinata condominiale", "Pannello Massello Rovere", "Alluminio Antigrandine/Sole", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Portoncino d'Ingresso Alluminio/Legno", specs: ["Vetro laterale satinato", "Design moderno con inserti inox", "Altro (Specifica un colore o essenza personalizzata)"] }
         ],
         diagnosis: ["Sicurezza e Serratura obsoleta", "Usura e Perdita di tenuta d'aria", "Richiesta Restyling Estetico"]
       },
       interne: {
         types: [
-          { name: "Battente Laccato / Essenza", specs: ["Laccato Bianco Opaco / Lucido", "Essenza Rovere Naturale", "Finitura Spazzolata a Poro Aperto"] },
-          { name: "Scorrevole Incasso (Scrigno)", specs: ["Legno Cieco", "Vetro Trasparente / Satinato con Cornice"] },
-          { name: "Scorrevole Esterno Muro", specs: ["Binario di Design Alluminio", "Porta in Vetro Temperato Decorato"] },
-          { name: "Vetro e Alluminio Design", specs: ["Vetro Fumè con Profili Neri", "Vetro Extrachiaro"] }
+          { name: "Battente Laccato / Essenza", specs: ["Laccato Bianco Opaco / Lucido", "Essenza Rovere Naturale", "Finitura Spazzolata a Poro Aperto", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Scorrevole Incasso (Scrigno)", specs: ["Legno Cieco", "Vetro Trasparente / Satinato con Cornice", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Scorrevole Esterno Muro", specs: ["Binario di Design Alluminio", "Porta in Vetro Temperato Decorato", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Vetro e Alluminio Design", specs: ["Vetro Fumè con Profili Neri", "Vetro Extrachiaro", "Altro (Specifica un colore o essenza personalizzata)"] }
         ],
         diagnosis: ["Degrado Meccanico / Usura", "Stile Fuori Mercato", "Isolamento Acustico Nullo tra Ambienti"]
       },
       oscuranti: {
         types: [
-          { name: "Persiane Alluminio / PVC", specs: ["A stecca orientabile", "A stecca fissa cieca", "Verde / Marrone / Antracite RAL"] },
-          { name: "Scuri in Legno / Alluminio", specs: ["Modello Veneziano a doghe", "Modello Padovano / Vicentino"] },
-          { name: "Tapparelle Avvolgibili Coibentate", specs: ["Alluminio alta densità", "Acciaio antieffrazione"] }
+          { name: "Persiane Alluminio / PVC", specs: ["A stecca orientabile", "A stecca fissa cieca", "Verde / Marrone / Antracite RAL", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Scuri in Legno / Alluminio", specs: ["Modello Veneziano a doghe", "Modello Padovano / Vicentino", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Tapparelle Avvolgibili Coibentate", specs: ["Alluminio alta densità", "Acciaio antieffrazione", "Altro (Specifica un colore o essenza personalizzata)"] }
         ],
         diagnosis: ["Sbiadimento Irreversibile", "Costi di manutenzione troppo elevati", "Usura Meccanica Guide/Rulli"]
       },
       cassonetti: {
         types: [
-          { name: "Cassonetto Coibentato Monoblocco", specs: ["Finitura bianca standard da tinteggiare", "Rivestimento coordinato al infisso"] },
+          { name: "Cassonetto Coibentato Monoblocco", specs: ["Finitura bianca standard da tinteggiare", "Rivestimento coordinato al infisso", "Altro (Specifica un colore o essenza personalizzata)"] },
           { name: "Isolamento Cassonetto Esistente (Renova)", specs: ["Kit termico interno invisibile"] }
         ],
         diagnosis: ["Ponte Termico e Bucate da Aria", "Rumore esterno dal Cassonetto", "Spifferi perimetrali"]
       },
       sezionali: {
         types: [
-          { name: "Portone Sezionale Coibentato", specs: ["Pannello dogato bianco/antracite", "Effetto legno scuro con oblò"] },
-          { name: "Basculante di Sicurezza Motore", specs: ["Lamiera verniciata goffrata", "Snodo semiautomatico"] }
+          { name: "Portone Sezionale Coibentato", specs: ["Pannello dogato bianco/antracite", "Effetto legno scuro con oblò", "Altro (Specifica un colore o essenza personalizzata)"] },
+          { name: "Basculante di Sicurezza Motore", specs: ["Lamiera verniciata goffrata", "Snodo semiautomatico", "Altro (Specifica un colore o essenza personalizzata)"] }
         ],
         diagnosis: ["Mancanza di isolamento nel Garage", "Richiesta Apertura Automatica/Smart", "Usura Molle e Cavi"]
       }
@@ -280,9 +285,10 @@
       subSelect.innerHTML = '<option value="">-- Seleziona Tipologia --</option>';
       specSelect.innerHTML = '<option value="">-- Prima seleziona tipologia --</option>';
       diagSelect.innerHTML = '<option value="">-- Seleziona Diagnosi --</option>';
+      document.getElementById('customSpecGroup').style.display = 'none';
 
       if (cat && optionsData[cat]) {
-        optionsData[cat].types.forEach((t, index) => {
+        optionsData[cat].types.forEach(t => {
           subSelect.innerHTML += `<option value="${t.name}">${t.name}</option>`;
         });
         optionsData[cat].diagnosis.forEach(d => {
@@ -297,6 +303,7 @@
       const specSelect = document.getElementById('specSelect');
 
       specSelect.innerHTML = '<option value="">-- Seleziona Finitura / Colore --</option>';
+      document.getElementById('customSpecGroup').style.display = 'none';
 
       if (cat && subName && optionsData[cat]) {
         const foundType = optionsData[cat].types.find(t => t.name === subName);
@@ -305,6 +312,17 @@
             specSelect.innerHTML += `<option value="${s}">${s}</option>`;
           });
         }
+      }
+    }
+
+    function checkCustomSpec(selectObj) {
+      const customGroup = document.getElementById('customSpecGroup');
+      if (selectObj.value.includes("Altro")) {
+        customGroup.style.display = 'block';
+        document.getElementById('customSpecInput').focus();
+      } else {
+        customGroup.style.display = 'none';
+        document.getElementById('customSpecInput').value = '';
       }
     }
 
@@ -339,10 +357,19 @@
       submitBtn.innerText = "Invio in corso...";
       statusMsg.style.display = 'none';
 
+      // Se l'utente seleziona la voce "Altro", inviamo la specifica personalizzata
+      let finalSpec = document.getElementById('specSelect').value;
+      if (finalSpec.includes("Altro")) {
+        const customText = document.getElementById('customSpecInput').value.trim();
+        if (customText) {
+          finalSpec = `Personalizzato: ${customText}`;
+        }
+      }
+
       const formData = {
         category: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
         subCategory: document.getElementById('subCategorySelect').value,
-        specification: document.getElementById('specSelect').value, // Il nuovo menu Colore/Essenza/Finitura
+        specification: finalSpec,
         diagnosis: document.getElementById('diagnosisSelect').value,
         address: document.getElementById('userAddress').value,
         notes: document.getElementById('userNotes').value,
