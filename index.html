@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visual INFIX® - Configuratore & Preventivatore Tecnico</title>
+  <style>
+    :root {
+      --primary-color: #004070;
+      --accent-color: #4CAF50;
+      --bg-color: #f4f7f9;
+      --text-color: #333;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 30px;
+    }
+    
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+    .header h1 { color: var(--primary-color); font-size: 28px; font-weight: 800; }
+    .header p { color: #666; font-size: 15px; margin-top: 5px; }
+
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--primary-color); }
+    select, input[type="text"], input[type="email"], input[type="tel"], textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      background-color: #fafafa;
+    }
+    select:focus, input:focus, textarea:focus { border-color: var(--primary-color); outline: none; background: #fff; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Upload Photo & Preview */
+    .file-upload-box {
+      border: 2px dashed #bbb;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+    .file-upload-box:hover { border-color: var(--primary-color); background: #f0f7ff; }
+    #photoInput { display: none; }
+    #previewContainer { display: none; margin-top: 15px; text-align: center; }
+    #previewImage { max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-submit:hover { background-color: #45a049; }
+
+    /* Success Message */
+    #statusMessage {
+      display: none;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>VISUAL INFIX®</h1>
+      <p>Configuratore Visivo & Scheda Tecnica Preventivo</p>
+    </div>
+
+    <form id="visualInfixForm">
+      
+      <!-- STEP 1: Macro Categoria -->
+      <div class="form-group">
+        <label for="categorySelect">1. Seleziona la Categoria di Prodotto</label>
+        <select id="categorySelect" required onchange="updateSubCategories()">
+          <option value="">-- Seleziona Categoria --</option>
+          <option value="serramenti">Infissi e Serramenti (Legno, PVC, Alluminio)</option>
+          <option value="blindate">Porte Blindate e Portoncini</option>
+          <option value="interne">Porte Interne e Design</option>
+          <option value="oscuranti">Persiane, Scuri e Oscuranti</option>
+          <option value="cassonetti">Cassonetti Coibentati</option>
+          <option value="sezionali">Portoni Sezionali e Basculanti</option>
+        </select>
+      </div>
+
+      <!-- STEP 2: Sottomenu Dinamici (Tipologia & Diagnosi Tecnica) -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="subCategorySelect">2. Tipologia / Materiale</label>
+          <select id="subCategorySelect" required>
+            <option value="">-- Prima seleziona la categoria --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="diagnosisSelect">3. Esigenza / Problema Rilevato</label>
+          <select id="diagnosisSelect" required>
+            <option value="">-- Prima seleziona la categoria --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STEP 3: Upload Foto Stato Attuale -->
+      <div class="form-group">
+        <label>4. Foto dello Stato Attuale (Il "Prima")</label>
+        <div class="file-upload-box" onclick="document.getElementById('photoInput').click()">
+          <p>📷 <strong>Clicca qui per caricare o scattare la foto</strong></p>
+          <span style="font-size:12px; color:#777;">Formati accettati: JPG, PNG</span>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" required onchange="handleImagePreview(event)">
+        
+        <div id="previewContainer">
+          <img id="previewImage" src="" alt="Anteprima Foto">
+        </div>
+      </div>
+
+      <!-- STEP 4: Note e Specifiche Libere -->
+      <div class="form-group">
+        <label for="userNotes">5. Note e Preferenze (Colore RAL, Finitura, Vetro acustico, ecc.)</label>
+        <textarea id="userNotes" rows="3" placeholder="Es. Cerco finitura Antracite RAL 7016 con triplo vetro fonoassorbente..."></textarea>
+      </div>
+
+      <!-- STEP 5: Contatti -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="userName">Nome e Cognome / Azienda</label>
+          <input type="text" id="userName" placeholder="Mario Rossi" required>
+        </div>
+        <div class="form-group">
+          <label for="userPhone">Telefono / WhatsApp</label>
+          <input type="tel" id="userPhone" placeholder="333 1234567" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="userEmail">Email per la risposta</label>
+        <input type="email" id="userEmail" placeholder="mario.rossi@email.it" required>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">INVIA RICHIESTA INFIX®</button>
+    </form>
+
+    <div id="statusMessage"></div>
+  </div>
+
+  <script>
+    // Mappa dei Sottomenu Dinamici (Basata sul catalogo e Area Tecnica Infix.it)
+    const optionsData = {
+      serramenti: {
+        types: ["PVC ad Alto Isolamento", "Legno-Alluminio", "Alluminio a Taglio Termico", "Legno Naturale"],
+        diagnosis: ["Spifferi e Condensa persistente", "Dispersioni termiche elevate", "Scarsità di isolamento acustico", "Degrado meccanico / Difficoltà apertura"]
+      },
+      blindate: {
+        types: ["Porta Blindata Classe 3", "Porta Blindata Classe 4", "Portoncino d'Ingresso Alluminio/Legno"],
+        diagnosis: ["Sicurezza e Serratura obsoleta", "Usura e Perdita di tenuta d'aria", "Richiesta Restyling Estetico"]
+      },
+      interne: {
+        types: ["Battente Laccato / Essenza", "Scorrevole Incasso (Scrigno)", "Scorrevole Esterno Muro", "Vetro e Alluminio Design"],
+        diagnosis: ["Degrado Meccanico / Usura", "Stile Fuori Mercato", "Isolamento Acustico Nullo tra Ambienti"]
+      },
+      oscuranti: {
+        types: ["Persiane Alluminio / PVC", "Scuri in Legno / Alluminio", "Tapparelle Avvolgibili Coibentate"],
+        diagnosis: ["Sbiadimento Irreversibile", "Costi di manutenzione troppo elevati", "Usura Meccanica Guide/Rulli"]
+      },
+      cassonetti: {
+        types: ["Cassonetto Coibentato Monoblocco", "Isolamento Cassonetto Esistente (Renova)"],
+        diagnosis: ["Ponte Termico e Bucate da Aria", "Rumore esterno dal Cassonetto", "Spifferi perimetrali"]
+      },
+      sezionali: {
+        types: ["Portone Sezionale Coibentato", "Basculante di Sicurezza Motore"],
+        diagnosis: ["Mancanza di isolamento nel Garage", "Richiesta Apertura Automatica/Smart", "Usura Molle e Cavi"]
+      }
+    };
+
+    let imageBase64 = "";
+
+    function updateSubCategories() {
+      const cat = document.getElementById('categorySelect').value;
+      const subSelect = document.getElementById('subCategorySelect');
+      const diagSelect = document.getElementById('diagnosisSelect');
+
+      subSelect.innerHTML = '<option value="">-- Seleziona Tipologia --</option>';
+      diagSelect.innerHTML = '<option value="">-- Seleziona Diagnosi --</option>';
+
+      if (cat && optionsData[cat]) {
+        optionsData[cat].types.forEach(t => {
+          subSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+        optionsData[cat].diagnosis.forEach(d => {
+          diagSelect.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+      }
+    }
+
+    function handleImagePreview(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('previewImage').src = e.target.result;
+          document.getElementById('previewContainer').style.display = 'block';
+          imageBase64 = e.target.result; // Salva la foto in Base64 per l'invio
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Gestione Invio al Backend Render
+    document.getElementById('visualInfixForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const statusMsg = document.getElementById('statusMessage');
+      
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Invio in corso...";
+      statusMsg.style.display = 'none';
+
+      const formData = {
+        category: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
+        subCategory: document.getElementById('subCategorySelect').value,
+        diagnosis: document.getElementById('diagnosisSelect').value,
+        notes: document.getElementById('userNotes').value,
+        name: document.getElementById('userName').value,
+        phone: document.getElementById('userPhone').value,
+        email: document.getElementById('userEmail').value,
+        image: imageBase64
+      };
+
+      try {
+        // SOSTITUISCI QUESTO URL CON IL TUO ENDPOINT RENDER QUANDO PRONTO
+        const response = await fetch('https://IL-TUO-SERVER.onrender.com/api/send-visual-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          statusMsg.className = 'success';
+          statusMsg.innerText = '✅ Richiesta inviata con successo! L\'Ufficio Tecnico INFIX® ti risponderà a breve.';
+          document.getElementById('visualInfixForm').reset();
+          document.getElementById('previewContainer').style.display = 'none';
+        } else {
+          throw new Error('Errore durante l\'invio');
+        }
+      } catch (err) {
+        statusMsg.className = 'error';
+        statusMsg.innerText = '❌ Si è verificato un errore durante l\'invio. Riprova o contattaci via WhatsApp.';
+      } finally {
+        statusMsg.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerText = "INVIA RICHIESTA INFIX®";
+      }
+    });
+  </script>
+</body>
+</html>
