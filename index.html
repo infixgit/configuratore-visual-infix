@@ -57,6 +57,17 @@
     #previewContainer { display: none; margin-top: 15px; text-align: center; }
     #previewImage { max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; }
 
+    /* Privacy checkbox styling */
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+    .checkbox-group input { margin-top: 4px; cursor: pointer; }
+
     /* Submit Button */
     .btn-submit {
       width: 100%;
@@ -126,14 +137,19 @@
         </div>
       </div>
 
-      <!-- STEP 3: Upload Foto Stato Attuale (FACOLTATIVA) -->
+      <!-- STEP 3: Indirizzo e Luogo del Lavoro -->
       <div class="form-group">
-        <label>4. Foto dello Stato Attuale (Facoltativa)</label>
+        <label for="userAddress">4. Indirizzo del Cantiere / Località dell'Intervento</label>
+        <input type="text" id="userAddress" placeholder="Via Roma 10, Città (Provincia)" required>
+      </div>
+
+      <!-- STEP 4: Upload Foto Stato Attuale (FACOLTATIVA) -->
+      <div class="form-group">
+        <label>5. Foto dello Stato Attuale (Facoltativa)</label>
         <div class="file-upload-box" onclick="document.getElementById('photoInput').click()">
           <p>📷 <strong>Clicca qui per caricare o scattare la foto</strong></p>
           <span style="font-size:12px; color:#777;">Formati accettati: JPG, PNG (Opzionale)</span>
         </div>
-        <!-- Attributo required rimosso per renderla opzionale -->
         <input type="file" id="photoInput" accept="image/*" onchange="handleImagePreview(event)">
         
         <div id="previewContainer">
@@ -141,13 +157,13 @@
         </div>
       </div>
 
-      <!-- STEP 4: Note e Specifiche Libere -->
+      <!-- STEP 5: Note e Specifiche Libere -->
       <div class="form-group">
-        <label for="userNotes">5. Note e Preferenze (Colore RAL, Finitura, Vetro acustico, ecc.)</label>
+        <label for="userNotes">6. Note e Preferenze (Colore RAL, Finitura, Vetro acustico, ecc.)</label>
         <textarea id="userNotes" rows="3" placeholder="Es. Cerco finitura Antracite RAL 7016 con triplo vetro fonoassorbente..."></textarea>
       </div>
 
-      <!-- STEP 5: Contatti -->
+      <!-- STEP 6: Contatti -->
       <div class="grid-2">
         <div class="form-group">
           <label for="userName">Nome e Cognome / Azienda</label>
@@ -162,6 +178,14 @@
       <div class="form-group">
         <label for="userEmail">Email per la risposta</label>
         <input type="email" id="userEmail" placeholder="mario.rossi@email.it" required>
+      </div>
+
+      <!-- CHECKBOX PRIVACY GDPR -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="privacyCheck" required>
+        <label for="privacyCheck" style="display:inline; font-weight:normal; color:#555;">
+          Acconsento al trattamento dei dati personali ai sensi del Regolamento UE 2016/679 (GDPR) per la ricezione del preventivo.*
+        </label>
       </div>
 
       <button type="submit" class="btn-submit" id="submitBtn">INVIA RICHIESTA INFIX®</button>
@@ -246,6 +270,7 @@
         category: document.getElementById('categorySelect').options[document.getElementById('categorySelect').selectedIndex].text,
         subCategory: document.getElementById('subCategorySelect').value,
         diagnosis: document.getElementById('diagnosisSelect').value,
+        address: document.getElementById('userAddress').value,
         notes: document.getElementById('userNotes').value,
         name: document.getElementById('userName').value,
         phone: document.getElementById('userPhone').value,
