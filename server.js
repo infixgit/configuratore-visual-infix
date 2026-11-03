@@ -15,7 +15,8 @@ apiKey.apiKey = process.env.BREVO_API_KEY;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 app.post('/api/send-visual-request', async (req, res) => {
-  const { category, subCategory, diagnosis, address, notes, name, phone, email, image } = req.body;
+  // Aggiunto "specification" per ricevere il colore o l'essenza scelta
+  const { category, subCategory, specification, diagnosis, address, notes, name, phone, email, image } = req.body;
 
   if (!email || !name || !category) {
     return res.status(400).json({ error: 'Campi obbligatori mancanti.' });
@@ -31,7 +32,7 @@ app.post('/api/send-visual-request', async (req, res) => {
     });
   }
 
-  // 1. EMAIL PER L'UFFICIO TECNICO (con allegato e indirizzo)
+  // 1. EMAIL PER L'UFFICIO TECNICO (con allegato, indirizzo e specifica colore/essenza)
   const emailToOffice = new SibApiV3Sdk.SendSmtpEmail();
   emailToOffice.subject = `Nuova Richiesta Visual INFIX®: ${category} - ${name}`;
   emailToOffice.sender = { name: "Visual INFIX® Web", email: process.env.SENDER_EMAIL || "info@infix.it" };
@@ -51,6 +52,7 @@ app.post('/api/send-visual-request', async (req, res) => {
       <ul>
         <li><strong>Macro Categoria:</strong> ${category}</li>
         <li><strong>Tipologia / Materiale:</strong> ${subCategory}</li>
+        <li><strong>Finitura / Colore / Essenza:</strong> ${specification || 'Non specificato'}</li>
         <li><strong>Esigenza / Problema Rilevato:</strong> ${diagnosis}</li>
       </ul>
       <p><strong>Note e Preferenze aggiuntive:</strong></p>
@@ -61,7 +63,6 @@ app.post('/api/send-visual-request', async (req, res) => {
     </div>
   `;
   
-  // Fondamentale: usiamo "attachments" (al plurale) come vuole Brevo
   if (attachmentsList.length > 0) {
     emailToOffice.attachments = attachmentsList;
   }
